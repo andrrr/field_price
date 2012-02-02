@@ -1,11 +1,22 @@
 <?php
 	Class fieldPrice extends Field {
+		
+		private $_validation_rule;
+		private $_default_locale;
+		private $_default_format;
+		
 		public function __construct(&$parent) {
 			parent::__construct($parent);
 			$this->_name = __('Price');
 			$this->_required = true;
-
+			$this->_validation_rule = '/^\d+(\.\d{2})?$/';
+			$this->_default_locale = 'en_US';
+			$this->_default_format = '%i';
+			
 			$this->set('required', 'no');
+			$this->set('locale', $this->_default_locale);
+			$this->set('format', $this->_default_format);
+			
 		}
 		
 		public function allowDatasourceOutputGrouping() {
@@ -33,12 +44,22 @@
 		}
 	
 
+	/*-------------------------------------------------------------------------
+		Settings:
+	-------------------------------------------------------------------------*/
+
+		public function setFromPOST($postdata){
+			parent::setFromPOST($postdata);
+			if($this->get('locale') == '') $this->set('locale', $this->_default_locale);
+			if($this->get('format') == '') $this->set('format', $this->_default_format);
+		}
+
 		public function displaySettingsPanel(&$wrapper, $errors = null) {
 			parent::displaySettingsPanel($wrapper, $errors);
 
-			$div = new XMLElement('div', NULL, array('class' => 'compact'));
-			$this->appendLocaleInput($div);
-			$this->appendFormatInput($div);
+			$div = new XMLElement('div', NULL, array('class' => 'group'));
+			$this->__appendLocaleInput($div);
+			$this->__appendFormatInput($div);
 			$wrapper->appendChild($div);
 
 			$div = new XMLElement('div', NULL, array('class' => 'compact'));
@@ -46,16 +67,28 @@
 			$this->appendShowColumnCheckbox($div);
 			$wrapper->appendChild($div);
 		}
-		
-		private function appendLocaleInput($div) {
-			return new XMLElement('div');
+
+		public function commit(){
+			if(!parent::commit()) return false;
+			$id = $this->get('id');
+			if($id === false) return false;
+
+			$fields = array(
+				'field_id'	=> $id,
+				'locale'	=> $this->get('locale'),
+				'format'	=> $this->get('format')
+			);
+
+			Symphony::Database()->query("DELETE FROM `tbl_fields_".$this->handle()."` WHERE `field_id` = '$id' LIMIT 1");
+			return Symphony::Database()->insert($fields, 'tbl_fields_' . $this->handle());
 		}
 
-		private function appendFormatInput($div) {
-			return new XMLElement('div');			
-		}
 		
-		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL)	{
+	/*-------------------------------------------------------------------------
+		Publish:
+	-------------------------------------------------------------------------*/
+
+		public function displayPublishPanel(&$wrapper, $data=NULL, $flagWithError=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL) {
 			$value = General::sanitize($data['value']);
 			$label = Widget::Label($this->get('label'));
 			if($this->get('required') != 'yes') $label->appendChild(new XMLElement('i', __('Optional')));
@@ -65,6 +98,47 @@
 			else $wrapper->appendChild($label);
 		}
 		
+		public function checkPostFieldData($data, &$message, $entry_id=NULL) {
+			$message = NULL;
+			if($this->get('required') == 'yes' && strlen(trim($data)) == 0){
+				$message = __("'%s' is a required field.", array($this->get('label')));
+				return self::__MISSING_FIELDS__;
+			}
+
+			if(!$this->__applyValidationRules($data)){
+				$message = __("'%s' contains invalid data. Please check the contents.", array($this->get('label')));
+				return self::__INVALID_FIELDS__;
+			}
+
+			return self::__OK__;
+		}
+		
+		public function processRawFieldData($data, &$status, $simulate = false, $entry_id = null) {
+			$status = self::__OK__;
+			if (strlen(trim($data)) == 0) return array();
+			return array('value' => $data);
+		}
+
+	/*-------------------------------------------------------------------------
+		Output:
+	-------------------------------------------------------------------------*/
+		
+		public function appendFormattedElement(&$wrapper, $data, $encode=false) {
+			$wrapper->appendChild(
+				new XMLElement($this->get('element_name'), $data['value'])
+			);
+		}
+		
+		public function prepareTableValue($data, XMLElement $link = null) {
+			if (empty($data)) return;
+			setlocale(LC_MONETARY, $this->get('locale'));
+			return money_format($this->get('format'), $data['value']);
+		}
+
+	/*-------------------------------------------------------------------------
+		Filtering:
+	-------------------------------------------------------------------------*/
+
 		public function buildDSRetrivalSQL($data, &$joins, &$where, $andOperation = false) {
 			$field_id = $this->get('id');
 			
@@ -133,38 +207,6 @@
 			return true;
 		}
 		
-		public function checkPostFieldData($data, &$message, $entry_id=NULL) {
-			$message = NULL;
-			if($this->get('required') == 'yes' && strlen(trim($data)) == 0){
-				$message = __("'%s' is a required field.", array($this->get('label')));
-				return self::__MISSING_FIELDS__;
-			}
-			if(!General::validateString($data, '/^\d+(\.\d{2})?$/')){
-				$message = __("'%s' contains invalid data. Please check the contents.", array($this->get('label')));
-				return self::__INVALID_FIELDS__;
-			}
-			return self::__OK__;
-		}
-		
-		public function processRawFieldData($data, &$status, $simulate = false, $entry_id = null) {
-			$status = self::__OK__;
-			if (strlen(trim($data)) == 0) return array();
-			if(!is_float($data)) $data = number_format($data, 2, '.', '');
-			
-			return array('value' => $data);
-		}
-		
-		public function appendFormattedElement(&$wrapper, $data, $encode=false) {
-			$wrapper->appendChild(
-				new XMLElement($this->get('element_name'), $data['value'])
-			);
-		}
-		
-		public function prepareTableValue($data, XMLElement $link = null) {
-			if (empty($data)) return;
-			return $data['value'];
-		}
-		
 		public function displayDatasourceFilterPanel(&$wrapper, $data=NULL, $errors=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL){
 			$wrapper->appendChild(new XMLElement('h4', $this->get('label') . ' <i>'.$this->Name().'</i>'));
 			$label = Widget::Label('Value');
@@ -175,17 +217,43 @@
 
 		}
 
+	/*-------------------------------------------------------------------------
+		Setup:
+	-------------------------------------------------------------------------*/
+
 		public function createTable() {
 			return Symphony::Database()->query(
 				"CREATE TABLE IF NOT EXISTS `tbl_entries_data_" . $this->get('id') . "` (
 				  `id` int(11) unsigned NOT NULL auto_increment,
 				  `entry_id` int(11) unsigned NOT NULL,
-				  `value_raw` varchar(255) default NULL,
-				  `value_formatted` varchar(255) default NULL,
+				  `value` varchar(255) default NULL,
 				  PRIMARY KEY  (`id`),
 				  KEY `entry_id` (`entry_id`),
-				  KEY `value_raw` (`value_raw`)
+				  KEY `value` (`value`)
 				) ENGINE=MyISAM;"
 			);
 		}
+
+	/*-------------------------------------------------------------------------
+		Utilities:
+	-------------------------------------------------------------------------*/
+
+		public function __appendLocaleInput(XMLElement &$wrapper){
+			$label = Widget::Label(__('Locale'));
+			$label->appendChild(Widget::Input('fields['.$this->get('sortorder').'][locale]', $this->get('locale')));
+			$wrapper->appendChild($label);
+
+		}
+
+		public function __appendFormatInput(XMLElement &$wrapper){
+			$label = Widget::Label(__('Format'));
+			$label->appendChild(Widget::Input('fields['.$this->get('sortorder').'][format]', $this->get('format')));
+			$wrapper->appendChild($label);
+
+		}
+
+		private function __applyValidationRules($data){
+			return ($this->_validation_rule ? General::validateString($data, $this->_validation_rule) : true);
+		}
+
 	}
