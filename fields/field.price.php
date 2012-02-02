@@ -124,15 +124,21 @@
 	-------------------------------------------------------------------------*/
 		
 		public function appendFormattedElement(&$wrapper, $data, $encode=false) {
+			setlocale(LC_MONETARY, $this->get('locale'));
+			
 			$wrapper->appendChild(
-				new XMLElement($this->get('element_name'), $data['value'])
+				new XMLElement(
+					$this->get('element_name'), 
+					money_format($this->get('format'), General::sanitize($data['value'])),
+					array('raw' => $data['value'])
+				)
 			);
 		}
 		
 		public function prepareTableValue($data, XMLElement $link = null) {
 			if (empty($data)) return;
 			setlocale(LC_MONETARY, $this->get('locale'));
-			return money_format($this->get('format'), $data['value']);
+			return money_format($this->get('format'), General::sanitize($data['value']));
 		}
 
 	/*-------------------------------------------------------------------------
