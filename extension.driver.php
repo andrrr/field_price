@@ -14,15 +14,15 @@
 		public function install() {
 			try {
 				
-				Symphony::Database()->query('CREATE TABLE `tbl_fields_price` (
-					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					  `field_id` int(11) unsigned NOT NULL,
-					  `locale` varchar(11) DEFAULT NULL,
-					  `format` varchar(255) DEFAULT NULL,
-					  PRIMARY KEY (`id`),
-					  KEY `field_id` (`field_id`)
+				Symphony::Database()->query("CREATE TABLE `tbl_fields_price` (
+						`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+						`field_id` int(11) unsigned NOT NULL,
+	  					`locale` varchar(11) NOT NULL DEFAULT 'en_US',
+						`format` varchar(255) DEFAULT '%i',
+						PRIMARY KEY (`id`),
+						KEY `field_id` (`field_id`)
 					) ENGINE=MyISAM DEFAULT CHARSET=utf8
-				');
+				");
 				
 			} catch(Exception $e) {
 				return false;
