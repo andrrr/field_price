@@ -137,8 +137,16 @@
 		
 		public function prepareTableValue($data, XMLElement $link = null) {
 			if (empty($data)) return;
+			
 			setlocale(LC_MONETARY, $this->get('locale'));
-			return money_format($this->get('format'), General::sanitize($data['value']));
+			$value = money_format($this->get('format'), General::sanitize($data['value']));
+			
+			if ($link) {
+				$link->setValue($value);
+				return $link->generate();
+			}
+
+			return $value;			
 		}
 
 	/*-------------------------------------------------------------------------
