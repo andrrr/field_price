@@ -162,13 +162,16 @@
 					$joins .= " LEFT JOIN `tbl_entries_data_$field_id` AS `t$field_id` ON (`e`.`id` = `t$field_id`.entry_id) ";
 
 					$values = explode('/', trim(substr($data[0], 6)));
+					$min = (!empty($values[0]) && is_numeric($values[0])) ? $values[0] : null;
+					$max = (!empty($values[1]) && is_numeric($values[1])) ? $values[1] : null;
 					
-					# min 
-					$where .= (!empty($values[0]) && is_numeric($values[0])) ? 
-						" AND `t$field_id`.`value` >= $values[0]" : null;
-					# max
-					$where .= (!empty($values[1]) && is_numeric($values[1])) ? 
-						" AND `t$field_id`.`value` <= $values[1]" : null;
+					if($min && $max) {
+						$where .= " AND `t$field_id`.`value` BETWEEN $min AND $max";
+					} else {
+						if ($min) $where .= " AND `t$field_id`.`value` >= $min";
+						if ($max) $where .= " AND `t$field_id`.`value` <= $max";
+					}
+					
 
 			} elseif (self::isFilterRegex($data[0])) {
 				$this->_key++;
@@ -227,7 +230,7 @@
 			$label->appendChild(Widget::Input('fields[filter]'.($fieldnamePrefix ? '['.$fieldnamePrefix.']' : '').'['.$this->get('id').']'.($fieldnamePostfix ? '['.$fieldnamePostfix.']' : ''), ($data ? General::sanitize($data) : NULL)));
 			$wrapper->appendChild($label);
 
-			$wrapper->appendChild(new XMLElement('p', 'To filter by ranges, add <code>range:</code> to the beginning of the filter input and use <code>{$min}/{$max}</code> syntax', array('class' => 'help')));
+			$wrapper->appendChild(new XMLElement('p', 'To filter by ranges, use `<code>range:{$min}/{$max}</code>` syntax', array('class' => 'help')));
 
 		}
 
