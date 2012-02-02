@@ -285,14 +285,18 @@
 		Utilities:
 	-------------------------------------------------------------------------*/
 
-		public function __appendLocaleInput(XMLElement &$wrapper){
+		public function getParameterPoolValue(array $data, $entry_id=NULL){
+			return $data['value'];
+		}
+
+		private function __appendLocaleInput(XMLElement &$wrapper){
 			$label = Widget::Label(__('Locale'));
 			$label->appendChild(Widget::Input('fields['.$this->get('sortorder').'][locale]', $this->get('locale')));
 			$wrapper->appendChild($label);
 
 		}
 
-		public function __appendFormatInput(XMLElement &$wrapper){
+		private function __appendFormatInput(XMLElement &$wrapper){
 			$label = Widget::Label(__('Format'));
 			$label->appendChild(Widget::Input('fields['.$this->get('sortorder').'][format]', $this->get('format')));
 			$wrapper->appendChild($label);
