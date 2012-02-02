@@ -139,7 +139,7 @@
 			if (empty($data)) return;
 			
 			setlocale(LC_MONETARY, $this->get('locale'));
-			$value = money_format($this->get('format'), General::sanitize($data['value']));
+			$value = General::sanitize(money_format($this->get('format'), $data['value']));
 			
 			if ($link) {
 				$link->setValue($value);
@@ -250,8 +250,10 @@
 				$handle = Lang::createHandle($value);
 
 				if(!isset($groups[$this->get('element_name')][$handle])){
+					setlocale(LC_MONETARY, $this->get('locale'));
+					
 					$groups[$this->get('element_name')][$handle] = array(
-						'attr' => array('handle' => $handle, 'value' => $value),
+						'attr' => array('handle' => $handle, 'value' => General::sanitize(money_format($this->get('format'), $data['value']))),
 						'records' => array(),
 						'groups' => array()
 					);
