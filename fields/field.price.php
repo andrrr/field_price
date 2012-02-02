@@ -129,7 +129,7 @@
 			$wrapper->appendChild(
 				new XMLElement(
 					$this->get('element_name'), 
-					money_format($this->get('format'), General::sanitize($data['value'])),
+					General::sanitize(money_format($this->get('format'), $data['value'])),
 					array('raw' => $data['value'])
 				)
 			);
