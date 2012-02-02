@@ -1,7 +1,6 @@
 <?php
 
-	Class extension_field_price extends Extension
-	{
+	Class extension_field_price extends Extension {
 		public function about(){
 			return array('name' => 'Field: Price',
 				'version' => '2.0',
@@ -13,15 +12,19 @@
 		}
 		
 		public function install() {
-			try{
-				Symphony::Database()->query('CREATE TABLE IF NOT EXISTS `tbl_fields_price` (
-					  `id` int(11) unsigned NOT NULL auto_increment,
+			try {
+				
+				Symphony::Database()->query('CREATE TABLE `tbl_fields_price` (
+					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  KEY `field_id` (`field_id`)
-				)');
-			}
-			catch(Exception $e){
+					  `locale` varchar(11) DEFAULT NULL,
+					  `format` varchar(255) DEFAULT NULL,
+					  PRIMARY KEY (`id`),
+					  KEY `field_id` (`field_id`)
+					) ENGINE=MyISAM DEFAULT CHARSET=utf8
+				');
+				
+			} catch(Exception $e) {
 				return false;
 			}			
 			return true;
