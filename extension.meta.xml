@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="field_price" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Price Field</name>
+
+	<description>Field created to store, filter and output price values</description>
+	<repo type="github">https://github.com/andrrr/field_price</repo>
+	<url type="discuss">http://symphony-cms.com/discuss</url>
+	<types>
+		<type>Field Types</type>
+	</types>
+	<authors>
+		<author>
+			<name github="andrrr" symphony="andrrr">Andrey Lubinov</name>
+			<email>andrey.lubinov@gmail.com</email>
+			<website></website>
+		</author>
+	</authors>
+
+	<releases>
+		<release version="2.0" date="2012-02-02"/>
+	</releases>
+</extension>
