@@ -235,6 +235,36 @@
 		}
 
 	/*-------------------------------------------------------------------------
+		Grouping:
+	-------------------------------------------------------------------------*/
+
+		public function groupRecords($records){
+			if(!is_array($records) || empty($records)) return;
+
+			$groups = array($this->get('element_name') => array());
+
+			foreach($records as $r){
+				$data = $r->getData($this->get('id'));
+
+				$value = General::sanitize($data['value']);
+				$handle = Lang::createHandle($value);
+
+				if(!isset($groups[$this->get('element_name')][$handle])){
+					$groups[$this->get('element_name')][$handle] = array(
+						'attr' => array('handle' => $handle, 'value' => $value),
+						'records' => array(),
+						'groups' => array()
+					);
+				}
+
+				$groups[$this->get('element_name')][$handle]['records'][] = $r;
+
+			}
+
+			return $groups;
+		}
+
+	/*-------------------------------------------------------------------------
 		Setup:
 	-------------------------------------------------------------------------*/
 
