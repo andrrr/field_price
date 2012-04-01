@@ -5,8 +5,8 @@
 		private $_default_locale;
 		private $_default_format;
 		
-		public function __construct(&$parent) {
-			parent::__construct($parent);
+		public function __construct() {
+			parent::__construct();
 			$this->_name = __('Price');
 			$this->_required = true;
 			$this->_validation_rule = '/^\d+(\.\d{2})?$/';
@@ -153,7 +153,7 @@
 		Filtering:
 	-------------------------------------------------------------------------*/
 
-		public function buildDSRetrivalSQL($data, &$joins, &$where, $andOperation = false) {
+		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
 			$field_id = $this->get('id');
 			
 			 if (preg_match('/^range:/i', $data[0])) {
@@ -165,27 +165,15 @@
 					$min = (!empty($values[0]) && is_numeric($values[0])) ? $values[0] : null;
 					$max = (!empty($values[1]) && is_numeric($values[1])) ? $values[1] : null;
 					
-					if($min && $max) {
+					if($min && $max) { 
 						$where .= " AND `t$field_id`.`value` BETWEEN $min AND $max";
 					} else {
 						if ($min) $where .= " AND `t$field_id`.`value` >= $min";
 						if ($max) $where .= " AND `t$field_id`.`value` <= $max";
 					}
-					
 
 			} elseif (self::isFilterRegex($data[0])) {
-				$this->_key++;
-				$pattern = str_replace('regexp:', '', $this->cleanValue($data[0]));
-				$joins .= "
-					LEFT JOIN
-						`tbl_entries_data_{$field_id}` AS t{$field_id}_{$this->_key}
-						ON (e.id = t{$field_id}_{$this->_key}.entry_id)
-				";
-				$where .= "
-					AND (
-						t{$field_id}_{$this->_key}.value REGEXP '{$pattern}'
-					)
-				";
+				$this->buildRegexSQL($data[0], array('value'), $joins, $where);
 			} elseif ($andOperation) {
 				foreach ($data as $value) {
 					$this->_key++;
@@ -225,9 +213,10 @@
 		}
 		
 		public function displayDatasourceFilterPanel(&$wrapper, $data=NULL, $errors=NULL, $fieldnamePrefix=NULL, $fieldnamePostfix=NULL){
-			$wrapper->appendChild(new XMLElement('h4', $this->get('label') . ' <i>'.$this->Name().'</i>'));
-			$label = Widget::Label('Value');
-			$label->appendChild(Widget::Input('fields[filter]'.($fieldnamePrefix ? '['.$fieldnamePrefix.']' : '').'['.$this->get('id').']'.($fieldnamePostfix ? '['.$fieldnamePostfix.']' : ''), ($data ? General::sanitize($data) : NULL)));
+
+			$wrapper->appendChild(new XMLElement('header', '<h4>' . $this->get('label') . '</h4> <span>' . $this->name() . '</span>'));
+			$label = Widget::Label(__('Value'));
+			$label->appendChild(Widget::Input('fields[filter]'.($fieldnamePrefix ? '['.$fieldnamePrefix.']' : '').'['.$this->get('id').']'.($fieldnamePostfix ? '['.$fieldnamePostfix.']' : ''), ($data ? General::sanitize($data) : null)));
 			$wrapper->appendChild($label);
 
 			$wrapper->appendChild(new XMLElement('p', 'To filter by ranges, use `<code>range:{$min}/{$max}</code>` syntax', array('class' => 'help')));

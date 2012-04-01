@@ -1,16 +1,7 @@
 <?php
 
 	Class extension_field_price extends Extension {
-		public function about(){
-			return array('name' => 'Field: Price',
-				'version' => '2.0',
-				'release-date' => '2012-02-02',
-				'author' => array('name' => 'Andrey Lubinov, Giel Berkers',
-					'website' => false,
-					'email' => 'andrey.lubinov@gmail.com')
-			);
-		}
-		
+
 		public function install() {
 			try {
 				
